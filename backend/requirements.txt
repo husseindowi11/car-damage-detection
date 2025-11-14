@@ -1,0 +1,24 @@
+# FastAPI and web server
+fastapi==0.103.2
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Google Gemini AI
+google-generativeai==0.3.2
+
+# Image processing
+Pillow==10.1.0
+
+# Async file operations
+aiofiles==23.2.1
+
+# Environment variables
+python-dotenv==1.0.0
+
+# HTTP client (for potential external API calls)
+httpx==0.25.2
+
+# Data validation
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
