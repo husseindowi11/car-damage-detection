@@ -153,7 +153,7 @@ class FileHandler:
         temp_after_path: str
     ) -> Tuple[str, str, str]:
         """
-        Copy temporary files to permanent storage.
+        Copy temporary files to permanent storage (single image version).
         
         Args:
             temp_before_path: Path to temporary BEFORE file
@@ -188,6 +188,58 @@ class FileHandler:
             logger.info(f"Copied to permanent storage: before={before_path}, after={after_path}")
             
             return inspection_id, str(before_path), str(after_path)
+            
+        except Exception as e:
+            logger.error(f"Error copying to permanent storage: {str(e)}")
+            raise Exception(f"Failed to copy to permanent storage: {str(e)}")
+    
+    def copy_multiple_to_permanent_storage(
+        self, 
+        temp_before_paths: list[str], 
+        temp_after_paths: list[str]
+    ) -> Tuple[str, list[str], list[str]]:
+        """
+        Copy multiple temporary files to permanent storage.
+        
+        Args:
+            temp_before_paths: List of paths to temporary BEFORE files
+            temp_after_paths: List of paths to temporary AFTER files
+        
+        Returns:
+            Tuple of (inspection_id, before_paths, after_paths)
+        """
+        try:
+            # Generate inspection ID
+            inspection_id = str(uuid.uuid4())
+            
+            # Create date-based directory structure
+            date_str = datetime.now().strftime("%Y-%m-%d")
+            inspection_dir = self.storage_dir / date_str / inspection_id
+            inspection_dir.mkdir(parents=True, exist_ok=True)
+            
+            logger.info(f"Copying {len(temp_before_paths)} BEFORE and {len(temp_after_paths)} AFTER images to: {inspection_dir}")
+            
+            # Copy all BEFORE images
+            before_paths = []
+            for idx, temp_path in enumerate(temp_before_paths, 1):
+                ext = Path(temp_path).suffix
+                perm_path = inspection_dir / f"before_{idx}{ext}"
+                shutil.copy2(temp_path, perm_path)
+                before_paths.append(str(perm_path))
+                logger.info(f"Copied BEFORE image {idx}: {perm_path}")
+            
+            # Copy all AFTER images
+            after_paths = []
+            for idx, temp_path in enumerate(temp_after_paths, 1):
+                ext = Path(temp_path).suffix
+                perm_path = inspection_dir / f"after_{idx}{ext}"
+                shutil.copy2(temp_path, perm_path)
+                after_paths.append(str(perm_path))
+                logger.info(f"Copied AFTER image {idx}: {perm_path}")
+            
+            logger.info(f"All images copied to permanent storage: {inspection_dir}")
+            
+            return inspection_id, before_paths, after_paths
             
         except Exception as e:
             logger.error(f"Error copying to permanent storage: {str(e)}")

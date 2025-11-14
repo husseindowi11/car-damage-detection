@@ -3,9 +3,8 @@ AI Service for vehicle damage detection using Google Gemini Vision
 """
 import os
 import json
-import base64
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List
 from pathlib import Path
 import google.generativeai as genai
 from PIL import Image
@@ -16,22 +15,24 @@ logger = logging.getLogger(__name__)
 class AIService:
     """Service for AI-powered damage detection using Google Gemini Vision"""
     
-    # The exact prompt as specified in the requirements
+    # The exact prompt as specified in the requirements (updated for multiple angles)
     DAMAGE_ANALYSIS_PROMPT = """You are an expert automotive damage assessor for a car rental company. You specialize in before/after vehicle comparison, collision damage detection, and generating real-world repair estimates using industry-standard pricing (CCC One, Mitchell, Audatex).
 
-You will receive TWO images:
+You will receive MULTIPLE images showing the vehicle from different angles:
 
-BEFORE image – vehicle at pickup
+BEFORE images – vehicle at pickup (from multiple angles: front, rear, left side, right side, interior, etc.)
 
-AFTER image – vehicle at return
+AFTER images – vehicle at return (from the same angles)
 
 Your tasks:
 
-Compare both images carefully.
+Compare ALL images carefully across all angles.
 
-Detect ONLY the NEW damages visible in the AFTER image.
+Detect ONLY the NEW damages visible in the AFTER images.
 
-Ignore all pre-existing damage visible in the BEFORE image.
+Ignore all pre-existing damage visible in the BEFORE images.
+
+Cross-reference all angles to get a complete view of each damage.
 
 For each new damage, identify:
 
@@ -82,7 +83,7 @@ If no new damage exists, return:
   "summary": "No new damage detected."
 }
 
-Wait for the two input images. The FIRST is BEFORE. The SECOND is AFTER."""
+The images will be provided in order: all BEFORE images first, then all AFTER images."""
     
     def __init__(self):
         """Initialize AI service with Google Gemini API"""
@@ -95,56 +96,56 @@ Wait for the two input images. The FIRST is BEFORE. The SECOND is AFTER."""
         # Configure Gemini
         genai.configure(api_key=self.api_key)
         
-        # Initialize the model (Gemini 1.5 Pro supports vision)
-        self.model = genai.GenerativeModel('gemini-1.5-pro')
-        
-        logger.info("AI Service initialized successfully")
+        # Initialize the model - using gemini-2.5-flash (stable, multimodal, 1M tokens)
+        # This model supports multimodal inputs (text + images)
+        model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        self.model = genai.GenerativeModel(model_name)
+        logger.info(f"AI Service initialized with model: {model_name}")
     
     async def analyze_damage(
         self, 
-        before_image_path: str, 
-        after_image_path: str
+        before_image_paths: list[str], 
+        after_image_paths: list[str]
     ) -> Dict[str, Any]:
         """
-        Analyze vehicle images to detect new damages.
+        Analyze vehicle images from multiple angles to detect new damages.
         
         Args:
-            before_image_path: Path to BEFORE image
-            after_image_path: Path to AFTER image
+            before_image_paths: List of paths to BEFORE images (multiple angles)
+            after_image_paths: List of paths to AFTER images (multiple angles)
         
         Returns:
-            Dictionary containing damage report and annotated image
+            Dictionary containing damage report
         """
         try:
-            logger.info("Starting damage analysis")
+            logger.info(f"Starting damage analysis with {len(before_image_paths)} BEFORE and {len(after_image_paths)} AFTER images")
             
-            # Load images
-            before_image = Image.open(before_image_path)
-            after_image = Image.open(after_image_path)
+            # Prepare content for Gemini (prompt + all images)
+            content = [self.DAMAGE_ANALYSIS_PROMPT]
             
-            # Prepare content for Gemini (prompt + images)
-            content = [
-                self.DAMAGE_ANALYSIS_PROMPT,
-                before_image,
-                after_image
-            ]
+            # Add all BEFORE images
+            for i, before_path in enumerate(before_image_paths, 1):
+                before_image = Image.open(before_path)
+                content.append(f"BEFORE Image {i}:")
+                content.append(before_image)
+            
+            # Add all AFTER images
+            for i, after_path in enumerate(after_image_paths, 1):
+                after_image = Image.open(after_path)
+                content.append(f"AFTER Image {i}:")
+                content.append(after_image)
             
             # Generate response
-            logger.info("Sending request to Gemini API")
+            logger.info("Sending request to Gemini API with multiple images")
             response = self.model.generate_content(content)
             
             # Parse JSON response
             report = self._parse_gemini_response(response.text)
             
-            # Generate annotated image (base64 encoded)
-            annotated_image_base64 = self._create_annotated_image(
-                after_image_path, 
-                report
-            )
+            logger.info(f"Analysis completed: {len(report.get('new_damage', []))} damages detected")
             
             return {
-                "report": report,
-                "annotated_image_base64": annotated_image_base64
+                "report": report
             }
             
         except Exception as e:
@@ -198,31 +199,4 @@ Wait for the two input images. The FIRST is BEFORE. The SECOND is AFTER."""
                 "error": str(e)
             }
     
-    def _create_annotated_image(
-        self, 
-        image_path: str, 
-        report: Dict[str, Any]
-    ) -> Optional[str]:
-        """
-        Create annotated image highlighting damages.
-        
-        Args:
-            image_path: Path to the AFTER image
-            report: Damage report from AI
-        
-        Returns:
-            Base64 encoded annotated image
-        """
-        try:
-            # For MVP, we'll return the original image base64
-            # In production, you could draw bounding boxes/annotations using PIL
-            with open(image_path, "rb") as image_file:
-                image_bytes = image_file.read()
-                image_base64 = base64.b64encode(image_bytes).decode('utf-8')
-            
-            return image_base64
-            
-        except Exception as e:
-            logger.error(f"Error creating annotated image: {str(e)}")
-            return None
 
