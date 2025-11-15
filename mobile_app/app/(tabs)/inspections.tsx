@@ -25,9 +25,11 @@ export default function InspectionsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [total, setTotal] = useState(0);
 
-  const loadInspections = async () => {
+  const loadInspections = async (showLoading: boolean = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const response = await getInspections(0, 100);
       if (response.status && response.data) {
         setInspections(response.data.inspections);
@@ -46,14 +48,17 @@ export default function InspectionsScreen() {
 
   // Load inspections on mount
   useEffect(() => {
-    loadInspections();
+    loadInspections(true);
   }, []);
 
-  // Reload inspections whenever the screen comes into focus (e.g., after creating new inspection)
+  // Reload inspections silently when screen comes into focus (preserves scroll position)
   useFocusEffect(
     React.useCallback(() => {
-      loadInspections();
-    }, [])
+      // Only reload if not the initial mount (inspections already loaded)
+      if (inspections.length > 0) {
+        loadInspections(false);
+      }
+    }, [inspections.length])
   );
 
   const onRefresh = () => {
