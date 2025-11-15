@@ -66,6 +66,21 @@ class InspectionService:
             raise
     
     @staticmethod
+    def get_all_inspections(db: Session, skip: int = 0, limit: int = 100) -> List[Inspection]:
+        """
+        Get all inspections with pagination support.
+        
+        Args:
+            db: Database session
+            skip: Number of records to skip (for pagination)
+            limit: Maximum number of records to return
+            
+        Returns:
+            List of inspection objects, ordered by created_at descending
+        """
+        return db.query(Inspection).order_by(Inspection.created_at.desc()).offset(skip).limit(limit).all()
+    
+    @staticmethod
     def get_inspection(db: Session, inspection_id: str) -> Optional[Inspection]:
         """
         Get a single inspection by ID.
@@ -78,6 +93,19 @@ class InspectionService:
             Inspection object or None if not found
         """
         return db.query(Inspection).filter(Inspection.id == inspection_id).first()
+    
+    @staticmethod
+    def count_inspections(db: Session) -> int:
+        """
+        Get total count of inspections.
+        
+        Args:
+            db: Database session
+            
+        Returns:
+            Total number of inspections
+        """
+        return db.query(Inspection).count()
     
     @staticmethod
     def get_inspections_by_car_name(db: Session, car_name: str) -> List[Inspection]:

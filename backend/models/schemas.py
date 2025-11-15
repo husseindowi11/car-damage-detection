@@ -167,3 +167,145 @@ class ErrorResponse(BaseModel):
                 }
             }
         }
+
+
+# Inspection Detail and List Schemas
+class InspectionDetail(BaseModel):
+    """Inspection detail schema for API responses"""
+    id: str = Field(..., description="Unique inspection identifier")
+    car_name: str = Field(..., description="Car name")
+    car_model: str = Field(..., description="Car model")
+    car_year: int = Field(..., description="Car manufacturing year")
+    damage_report: DamageReport = Field(..., description="Full damage analysis report")
+    total_damage_cost: float = Field(..., description="Total estimated damage cost in USD")
+    before_images: List[str] = Field(..., description="List of BEFORE image paths")
+    after_images: List[str] = Field(..., description="List of AFTER image paths")
+    created_at: str = Field(..., description="Inspection creation timestamp")
+    
+    class Config:
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "car_name": "Toyota Corolla",
+                "car_model": "SE",
+                "car_year": 2020,
+                "damage_report": {
+                    "new_damage": [
+                        {
+                            "car_part": "rear bumper",
+                            "damage_type": "dent",
+                            "severity": "moderate",
+                            "recommended_action": "repair",
+                            "estimated_cost_usd": 350.0,
+                            "description": "Dent on rear bumper, approximately 3 inches in diameter"
+                        }
+                    ],
+                    "total_estimated_cost_usd": 350.0,
+                    "summary": "1 new damage detected on rear bumper"
+                },
+                "total_damage_cost": 350.0,
+                "before_images": [
+                    "uploads/2024-01-15/550e8400-e29b-41d4-a716-446655440000/before_1.jpg"
+                ],
+                "after_images": [
+                    "uploads/2024-01-15/550e8400-e29b-41d4-a716-446655440000/after_1.jpg"
+                ],
+                "created_at": "2024-01-15T10:30:00"
+            }
+        }
+
+
+class InspectionListItem(BaseModel):
+    """Inspection list item schema (summary for list view)"""
+    id: str = Field(..., description="Unique inspection identifier")
+    car_name: str = Field(..., description="Car name")
+    car_model: str = Field(..., description="Car model")
+    car_year: int = Field(..., description="Car manufacturing year")
+    total_damage_cost: float = Field(..., description="Total estimated damage cost in USD")
+    created_at: str = Field(..., description="Inspection creation timestamp")
+    
+    class Config:
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "car_name": "Toyota Corolla",
+                "car_model": "SE",
+                "car_year": 2020,
+                "total_damage_cost": 350.0,
+                "created_at": "2024-01-15T10:30:00"
+            }
+        }
+
+
+class InspectionListData(BaseModel):
+    """Data structure for inspection list response"""
+    total: int = Field(..., description="Total number of inspections")
+    inspections: List[InspectionListItem] = Field(..., description="List of inspections")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "total": 2,
+                "inspections": [
+                    {
+                        "id": "550e8400-e29b-41d4-a716-446655440000",
+                        "car_name": "Toyota Corolla",
+                        "car_model": "SE",
+                        "car_year": 2020,
+                        "total_damage_cost": 350.0,
+                        "created_at": "2024-01-15T10:30:00"
+                    }
+                ]
+            }
+        }
+
+
+class InspectionListResponse(BaseModel):
+    """Standardized response for inspection list"""
+    status: bool = Field(..., description="Response status")
+    message: str = Field(..., description="Response message")
+    data: InspectionListData = Field(..., description="Inspection list data")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": True,
+                "message": "Inspections retrieved successfully",
+                "data": {
+                    "total": 2,
+                    "inspections": []
+                }
+            }
+        }
+
+
+class InspectionDetailResponse(BaseModel):
+    """Standardized response for inspection detail"""
+    status: bool = Field(..., description="Response status")
+    message: str = Field(..., description="Response message")
+    data: InspectionDetail = Field(..., description="Inspection detail data")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": True,
+                "message": "Inspection retrieved successfully",
+                "data": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "car_name": "Toyota Corolla",
+                    "car_model": "SE",
+                    "car_year": 2020,
+                    "damage_report": {
+                        "new_damage": [],
+                        "total_estimated_cost_usd": 350.0,
+                        "summary": "1 new damage detected"
+                    },
+                    "total_damage_cost": 350.0,
+                    "before_images": [],
+                    "after_images": [],
+                    "created_at": "2024-01-15T10:30:00"
+                }
+            }
+        }

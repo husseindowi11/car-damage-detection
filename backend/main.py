@@ -1,10 +1,10 @@
 """
 FastAPI Backend for AI-Powered Vehicle Condition Assessment
 """
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Form, Query
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
-from typing import List
+from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
@@ -22,6 +22,8 @@ from utils.file_handler import FileHandler
 from utils.validators import validate_image_file
 from models.schemas import (
     InspectionResponse,
+    InspectionListResponse,
+    InspectionDetailResponse,
     HealthResponse,
     RootResponse,
     ErrorResponse
@@ -281,6 +283,136 @@ async def inspect_vehicle(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to process inspection: {str(e)}"
+        )
+
+
+@app.get(
+    "/inspections",
+    response_model=InspectionListResponse,
+    status_code=200,
+    tags=["inspection"],
+    summary="List inspections",
+    description="Get a list of all inspections with pagination support",
+    responses={
+        200: {
+            "description": "Successful response",
+            "model": InspectionListResponse
+        },
+        500: {
+            "description": "Internal server error",
+            "model": ErrorResponse
+        }
+    }
+)
+async def list_inspections(
+    skip: int = Query(0, ge=0, description="Number of records to skip (for pagination)"),
+    limit: int = Query(100, ge=1, le=1000, description="Maximum number of records to return"),
+    db: Session = Depends(get_db)
+) -> InspectionListResponse:
+    """
+    Retrieve a paginated list of all inspections.
+    
+    Returns inspections ordered by creation date (newest first).
+    """
+    try:
+        inspections = InspectionService.get_all_inspections(db, skip=skip, limit=limit)
+        total = InspectionService.count_inspections(db)
+        
+        # Convert to list items (summary format)
+        inspection_items = []
+        for inspection in inspections:
+            inspection_items.append({
+                "id": inspection.id,
+                "car_name": inspection.car_name,
+                "car_model": inspection.car_model,
+                "car_year": inspection.car_year,
+                "total_damage_cost": inspection.total_damage_cost,
+                "created_at": inspection.created_at.isoformat() if inspection.created_at else ""
+            })
+        
+        return {
+            "status": True,
+            "message": "Inspections retrieved successfully",
+            "data": {
+                "total": total,
+                "inspections": inspection_items
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error retrieving inspections: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve inspections: {str(e)}"
+        )
+
+
+@app.get(
+    "/inspections/{inspection_id}",
+    response_model=InspectionDetailResponse,
+    status_code=200,
+    tags=["inspection"],
+    summary="Get inspection details",
+    description="Retrieve detailed information about a specific inspection",
+    responses={
+        200: {
+            "description": "Successful response",
+            "model": InspectionDetailResponse
+        },
+        404: {
+            "description": "Inspection not found",
+            "model": ErrorResponse
+        },
+        500: {
+            "description": "Internal server error",
+            "model": ErrorResponse
+        }
+    }
+)
+async def get_inspection_details(
+    inspection_id: str,
+    db: Session = Depends(get_db)
+) -> InspectionDetailResponse:
+    """
+    Retrieve detailed information about a specific inspection by ID.
+    
+    Returns the full inspection record including damage report and image paths.
+    """
+    try:
+        inspection = InspectionService.get_inspection(db, inspection_id)
+        
+        if inspection is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Inspection with ID '{inspection_id}' not found"
+            )
+        
+        # Convert to detail format
+        inspection_detail = {
+            "id": inspection.id,
+            "car_name": inspection.car_name,
+            "car_model": inspection.car_model,
+            "car_year": inspection.car_year,
+            "damage_report": inspection.damage_report,
+            "total_damage_cost": inspection.total_damage_cost,
+            "before_images": inspection.before_images if isinstance(inspection.before_images, list) else [],
+            "after_images": inspection.after_images if isinstance(inspection.after_images, list) else [],
+            "created_at": inspection.created_at.isoformat() if inspection.created_at else ""
+        }
+        
+        return {
+            "status": True,
+            "message": "Inspection retrieved successfully",
+            "data": inspection_detail
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving inspection {inspection_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve inspection: {str(e)}"
         )
 
 
