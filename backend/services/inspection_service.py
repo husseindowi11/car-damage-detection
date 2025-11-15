@@ -16,10 +16,13 @@ class InspectionService:
     def create_inspection(
         db: Session,
         inspection_id: str,
-        car_id: int,
+        car_name: str,
+        car_model: str,
+        car_year: int,
         damage_report: Dict[str, Any],
         total_damage_cost: float,
-        booking_id: Optional[int] = None
+        before_images: List[str],
+        after_images: List[str]
     ) -> Inspection:
         """
         Create a new inspection record in the database.
@@ -27,10 +30,13 @@ class InspectionService:
         Args:
             db: Database session
             inspection_id: Unique inspection ID (UUID string)
-            car_id: Car ID
+            car_name: Car name
+            car_model: Car model/trim
+            car_year: Car manufacturing year
             damage_report: Full damage report JSON
             total_damage_cost: Total damage cost
-            booking_id: Optional booking ID to link
+            before_images: List of before image paths
+            after_images: List of after image paths
             
         Returns:
             Created inspection object
@@ -38,17 +44,20 @@ class InspectionService:
         try:
             db_inspection = Inspection(
                 id=inspection_id,
-                booking_id=booking_id,
-                car_id=car_id,
+                car_name=car_name,
+                car_model=car_model,
+                car_year=car_year,
                 damage_report=damage_report,
-                total_damage_cost=total_damage_cost
+                total_damage_cost=total_damage_cost,
+                before_images=before_images,
+                after_images=after_images
             )
             
             db.add(db_inspection)
             db.commit()
             db.refresh(db_inspection)
             
-            logger.info(f"Created inspection: {inspection_id} for car {car_id}")
+            logger.info(f"Created inspection: {inspection_id} for {car_name} {car_model} {car_year}")
             return db_inspection
             
         except Exception as e:
@@ -71,30 +80,30 @@ class InspectionService:
         return db.query(Inspection).filter(Inspection.id == inspection_id).first()
     
     @staticmethod
-    def get_inspections_by_car(db: Session, car_id: int) -> List[Inspection]:
+    def get_inspections_by_car_name(db: Session, car_name: str) -> List[Inspection]:
         """
-        Get all inspections for a specific car.
+        Get all inspections for a specific car name.
         
         Args:
             db: Database session
-            car_id: Car ID
+            car_name: Car name
             
         Returns:
             List of inspection objects
         """
-        return db.query(Inspection).filter(Inspection.car_id == car_id).order_by(Inspection.created_at.desc()).all()
+        return db.query(Inspection).filter(Inspection.car_name.ilike(f"%{car_name}%")).order_by(Inspection.created_at.desc()).all()
     
     @staticmethod
-    def get_inspections_by_booking(db: Session, booking_id: int) -> List[Inspection]:
+    def get_inspections_by_year(db: Session, car_year: int) -> List[Inspection]:
         """
-        Get all inspections for a specific booking.
+        Get all inspections for a specific car year.
         
         Args:
             db: Database session
-            booking_id: Booking ID
+            car_year: Car year
             
         Returns:
             List of inspection objects
         """
-        return db.query(Inspection).filter(Inspection.booking_id == booking_id).order_by(Inspection.created_at.desc()).all()
+        return db.query(Inspection).filter(Inspection.car_year == car_year).order_by(Inspection.created_at.desc()).all()
 

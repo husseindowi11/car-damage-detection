@@ -46,39 +46,60 @@ def init_db():
     logger.info(f"Creating database tables for {DATABASE_URL}...")
     
     # Import all models here so that Base has them before creating tables
-    from models.database import Car, Booking, Inspection, BookingImage  # noqa
+    from models.database import Inspection  # noqa
     
-    # Check if inspections table exists and has old columns
+    # Check if inspections table exists and needs migration
     inspector = sqlalchemy_inspect(engine)
     if inspector.has_table("inspections"):
-        # Check if old columns exist
+        # Check if old columns exist (from previous schema)
         columns = [col['name'] for col in inspector.get_columns("inspections")]
-        if 'before_images' in columns or 'after_images' in columns:
-            logger.info("Detected old schema with before_images/after_images columns. Migrating...")
+        needs_migration = False
+        
+        # Check if it has old schema (booking_id, car_id) or missing new fields (car_name, car_model, car_year, before_images, after_images)
+        if 'booking_id' in columns or 'car_id' in columns or 'car_name' not in columns:
+            needs_migration = True
+        
+        if needs_migration:
+            logger.info("Detected old schema. Migrating inspections table...")
             # SQLite doesn't support DROP COLUMN, so we need to recreate the table
             with engine.begin() as conn:  # begin() handles transaction automatically
                 try:
-                    # Create new table without old columns
+                    # Create new table with new schema
                     conn.execute(text("""
                         CREATE TABLE inspections_new (
                             id VARCHAR NOT NULL,
-                            booking_id INTEGER,
-                            car_id INTEGER NOT NULL,
+                            car_name VARCHAR NOT NULL,
+                            car_model VARCHAR NOT NULL,
+                            car_year INTEGER NOT NULL,
                             damage_report JSON NOT NULL,
                             total_damage_cost FLOAT NOT NULL,
+                            before_images JSON NOT NULL,
+                            after_images JSON NOT NULL,
                             created_at DATETIME NOT NULL,
-                            PRIMARY KEY (id),
-                            FOREIGN KEY(booking_id) REFERENCES bookings (id) ON DELETE SET NULL,
-                            FOREIGN KEY(car_id) REFERENCES cars (id) ON DELETE CASCADE
+                            PRIMARY KEY (id)
                         )
                     """))
                     
-                    # Copy data (excluding old columns)
-                    conn.execute(text("""
-                        INSERT INTO inspections_new (id, booking_id, car_id, damage_report, total_damage_cost, created_at)
-                        SELECT id, booking_id, car_id, damage_report, total_damage_cost, created_at
-                        FROM inspections
-                    """))
+                    # Try to copy data if possible (may fail if old schema is incompatible)
+                    try:
+                        # If old table has damage_report and total_damage_cost, try to preserve them
+                        conn.execute(text("""
+                            INSERT INTO inspections_new (id, car_name, car_model, car_year, damage_report, total_damage_cost, before_images, after_images, created_at)
+                            SELECT 
+                                id,
+                                'Unknown' as car_name,
+                                'Unknown' as car_model,
+                                2000 as car_year,
+                                COALESCE(damage_report, '{}') as damage_report,
+                                COALESCE(total_damage_cost, 0.0) as total_damage_cost,
+                                '[]' as before_images,
+                                '[]' as after_images,
+                                COALESCE(created_at, datetime('now')) as created_at
+                            FROM inspections
+                        """))
+                        logger.info("Migrated existing inspection data")
+                    except Exception as e:
+                        logger.warning(f"Could not migrate existing data: {str(e)}. Creating fresh table.")
                     
                     # Drop old table
                     conn.execute(text("DROP TABLE inspections"))
@@ -87,11 +108,12 @@ def init_db():
                     conn.execute(text("ALTER TABLE inspections_new RENAME TO inspections"))
                     
                     # Recreate indexes
-                    conn.execute(text("CREATE INDEX ix_inspections_booking_id ON inspections (booking_id)"))
-                    conn.execute(text("CREATE INDEX ix_inspections_car_id ON inspections (car_id)"))
+                    conn.execute(text("CREATE INDEX ix_inspections_car_name ON inspections (car_name)"))
+                    conn.execute(text("CREATE INDEX ix_inspections_car_model ON inspections (car_model)"))
+                    conn.execute(text("CREATE INDEX ix_inspections_car_year ON inspections (car_year)"))
                     conn.execute(text("CREATE INDEX ix_inspections_id ON inspections (id)"))
                     
-                    logger.info("Migration completed: removed before_images and after_images columns")
+                    logger.info("Migration completed: updated inspections table schema")
                 except Exception as e:
                     logger.error(f"Migration failed: {str(e)}")
                     raise
