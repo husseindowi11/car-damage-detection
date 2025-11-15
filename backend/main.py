@@ -4,6 +4,7 @@ FastAPI Backend for AI-Powered Vehicle Condition Assessment
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Form, Query
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -64,10 +65,12 @@ app = FastAPI(
     ## Endpoints
     
     ### Damage Detection
-    * **POST /inspect**: Analyze vehicle images for damage detection (supports multiple angles)
+    * **POST /api/inspect**: Analyze vehicle images for damage detection (supports multiple angles)
+    * **GET /api/inspections**: List all inspections with pagination
+    * **GET /api/inspections/{id}**: Get inspection details by ID
     
     ### System
-    * **GET /health**: Health check endpoint
+    * **GET /api/health**: Health check endpoint
     * **GET /**: API information and version
     
     ## Documentation
@@ -104,6 +107,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files directory to serve uploaded images
+# This allows images to be accessed via http://localhost:8000/uploads/...
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Initialize services (lazy initialization for AI service to handle missing API key gracefully)
 ai_service = None
@@ -144,7 +151,7 @@ async def root():
 
 
 @app.get(
-    "/health",
+    "/api/health",
     response_model=HealthResponse,
     tags=["health"],
     summary="Health check",
@@ -165,7 +172,7 @@ async def health_check():
 
 
 @app.post(
-    "/inspect",
+    "/api/inspect",
     response_model=InspectionResponse,
     status_code=200,
     tags=["inspection"],
@@ -287,7 +294,7 @@ async def inspect_vehicle(
 
 
 @app.get(
-    "/inspections",
+    "/api/inspections",
     response_model=InspectionListResponse,
     status_code=200,
     tags=["inspection"],
@@ -348,7 +355,7 @@ async def list_inspections(
 
 
 @app.get(
-    "/inspections/{inspection_id}",
+    "/api/inspections/{inspection_id}",
     response_model=InspectionDetailResponse,
     status_code=200,
     tags=["inspection"],

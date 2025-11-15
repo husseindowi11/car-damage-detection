@@ -225,7 +225,9 @@ class FileHandler:
                 ext = Path(temp_path).suffix
                 perm_path = inspection_dir / f"before_{idx}{ext}"
                 shutil.copy2(temp_path, perm_path)
-                before_paths.append(str(perm_path))
+                # Return relative path from uploads directory for URL construction
+                relative_path = perm_path.relative_to(self.storage_dir)
+                before_paths.append(str(relative_path).replace('\\', '/'))  # Use forward slashes
                 logger.info(f"Copied BEFORE image {idx}: {perm_path}")
             
             # Copy all AFTER images
@@ -234,7 +236,9 @@ class FileHandler:
                 ext = Path(temp_path).suffix
                 perm_path = inspection_dir / f"after_{idx}{ext}"
                 shutil.copy2(temp_path, perm_path)
-                after_paths.append(str(perm_path))
+                # Return relative path from uploads directory for URL construction
+                relative_path = perm_path.relative_to(self.storage_dir)
+                after_paths.append(str(relative_path).replace('\\', '/'))  # Use forward slashes
                 logger.info(f"Copied AFTER image {idx}: {perm_path}")
             
             logger.info(f"All images copied to permanent storage: {inspection_dir}")
