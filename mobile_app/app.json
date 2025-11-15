@@ -38,6 +38,13 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app needs access to your photos to select vehicle images.",
+          "cameraPermission": "The app needs access to your camera to take vehicle photos."
+        }
       ]
     ],
     "experiments": {

@@ -1,50 +1,95 @@
-# Welcome to your Expo app 👋
+# Vehicle Damage Detection Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern React Native mobile app built with Expo for vehicle condition assessment.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Inspections Tab**: View all inspections in a beautiful list with pull-to-refresh
+- **Inspect Tab**: Create new inspections with:
+  - Car information form (name, model, year)
+  - Multiple BEFORE images (camera or gallery)
+  - Multiple AFTER images (camera or gallery)
+  - Native device camera integration
 
+## Setup
+
+1. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Configure API URL:
+   - Open `config/api.ts`
+   - Update `BASE_URL` to your backend API URL
+   - For physical device testing, use your computer's IP address instead of `localhost`
+     - Example: `http://192.168.1.100:8000`
 
+3. Start the development server:
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. Run on your device:
+   - Press `i` for iOS simulator
+   - Press `a` for Android emulator
+   - Scan QR code with Expo Go app (for physical devices)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Project Structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+mobile_app/
+├── app/                    # Expo Router screens
+│   ├── (tabs)/            # Tab navigation screens
+│   │   ├── inspections.tsx    # Inspections list
+│   │   └── inspect.tsx        # Inspection form
+│   └── inspection-detail.tsx  # Inspection detail view
+├── config/
+│   └── api.ts             # API configuration (BASE_URL here!)
+├── services/
+│   └── api.ts             # API service functions
+├── types/
+│   └── api.ts             # TypeScript types
+└── components/            # Reusable components
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## API Configuration
 
-## Learn more
+All API calls use the base URL defined in `config/api.ts`. To change the API endpoint:
 
-To learn more about developing your project with Expo, look at the following resources:
+1. Open `config/api.ts`
+2. Update the `BASE_URL` in `API_CONFIG`
+3. The change will apply to all API calls automatically
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Permissions
 
-## Join the community
+The app requires:
+- **Camera Permission**: To take photos of vehicles
+- **Photo Library Permission**: To select images from gallery
 
-Join our community of developers creating universal apps.
+These permissions are requested automatically when you try to use camera/gallery features.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Development
+
+- Uses Expo Router for file-based navigation
+- TypeScript for type safety
+- Modern React Native components
+- Dark mode support
+- Clean, maintainable code structure
+
+## Troubleshooting
+
+### Images not uploading
+- Check that your API URL is correct in `config/api.ts`
+- Ensure backend is running and accessible
+- For physical devices, use IP address instead of `localhost`
+
+### Camera not working
+- Ensure camera permissions are granted
+- Check `app.json` has `expo-image-picker` plugin configured
+
+### API connection errors
+- Verify backend is running
+- Check network connectivity
+- For iOS simulator, `localhost` works
+- For Android emulator, use `10.0.2.2:8000` instead of `localhost:8000`
+- For physical devices, use your computer's IP address
