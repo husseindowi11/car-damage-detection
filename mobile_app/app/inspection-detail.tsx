@@ -6,6 +6,7 @@ import {
   Alert,
   View,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ThemedView } from '@/components/themed-view';
@@ -23,12 +24,24 @@ export default function InspectionDetailScreen() {
   const colorScheme = useColorScheme();
   const [inspection, setInspection] = useState<InspectionDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeImageTab, setActiveImageTab] = useState<'before' | 'after'>('before');
 
   useEffect(() => {
     if (id) {
       loadInspectionDetails();
     }
   }, [id]);
+
+  // Set default tab based on available images
+  useEffect(() => {
+    if (inspection) {
+      if (inspection.before_images.length === 0 && inspection.after_images.length > 0) {
+        setActiveImageTab('after');
+      } else if (inspection.before_images.length > 0) {
+        setActiveImageTab('before');
+      }
+    }
+  }, [inspection]);
 
   const loadInspectionDetails = async () => {
     try {
@@ -183,9 +196,56 @@ export default function InspectionDetailScreen() {
           <ThemedView style={styles.section}>
             <ThemedText style={styles.sectionTitle}>Images</ThemedText>
             
-            {inspection.before_images.length > 0 && (
-              <ThemedView style={styles.imageSection}>
-                <ThemedText style={styles.imageSectionTitle}>Before</ThemedText>
+            {/* Image Tabs */}
+            <ThemedView style={styles.tabContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.tab,
+                  activeImageTab === 'before' && [
+                    styles.tabActive,
+                    { backgroundColor: colors.tint + '20', borderBottomColor: colors.tint },
+                  ],
+                ]}
+                onPress={() => setActiveImageTab('before')}
+                disabled={inspection.before_images.length === 0}
+              >
+                <ThemedText
+                  style={[
+                    styles.tabText,
+                    activeImageTab === 'before' && { color: colors.tint, fontWeight: '600' },
+                    inspection.before_images.length === 0 && { opacity: 0.4 },
+                  ]}
+                >
+                  Before ({inspection.before_images.length})
+                </ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.tab,
+                  activeImageTab === 'after' && [
+                    styles.tabActive,
+                    { backgroundColor: colors.tint + '20', borderBottomColor: colors.tint },
+                  ],
+                ]}
+                onPress={() => setActiveImageTab('after')}
+                disabled={inspection.after_images.length === 0}
+              >
+                <ThemedText
+                  style={[
+                    styles.tabText,
+                    activeImageTab === 'after' && { color: colors.tint, fontWeight: '600' },
+                    inspection.after_images.length === 0 && { opacity: 0.4 },
+                  ]}
+                >
+                  After ({inspection.after_images.length})
+                </ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+
+            {/* Image Content */}
+            <ThemedView style={styles.imageContent}>
+              {activeImageTab === 'before' && inspection.before_images.length > 0 && (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   {inspection.before_images.map((imagePath, index) => (
                     <Image
@@ -196,12 +256,9 @@ export default function InspectionDetailScreen() {
                     />
                   ))}
                 </ScrollView>
-              </ThemedView>
-            )}
+              )}
 
-            {inspection.after_images.length > 0 && (
-              <ThemedView style={styles.imageSection}>
-                <ThemedText style={styles.imageSectionTitle}>After</ThemedText>
+              {activeImageTab === 'after' && inspection.after_images.length > 0 && (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   {inspection.after_images.map((imagePath, index) => (
                     <Image
@@ -212,8 +269,17 @@ export default function InspectionDetailScreen() {
                     />
                   ))}
                 </ScrollView>
-              </ThemedView>
-            )}
+              )}
+
+              {((activeImageTab === 'before' && inspection.before_images.length === 0) ||
+                (activeImageTab === 'after' && inspection.after_images.length === 0)) && (
+                <ThemedView style={styles.emptyImages}>
+                  <ThemedText style={styles.emptyImagesText}>
+                    No {activeImageTab} images available
+                  </ThemedText>
+                </ThemedView>
+              )}
+            </ThemedView>
           </ThemedView>
         )}
       </ScrollView>
@@ -356,19 +422,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  imageSection: {
-    marginBottom: 24,
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  imageSectionTitle: {
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+  },
+  tabText: {
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
+    fontWeight: '500',
+  },
+  imageContent: {
+    minHeight: 220,
   },
   image: {
     width: 200,
     height: 200,
     borderRadius: 12,
     marginRight: 12,
+  },
+  emptyImages: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyImagesText: {
+    fontSize: 16,
+    opacity: 0.6,
   },
   loadingText: {
     marginTop: 12,
