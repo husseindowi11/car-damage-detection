@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { PageHeader } from '@/components/page-header';
@@ -43,9 +44,17 @@ export default function InspectionsScreen() {
     }
   };
 
+  // Load inspections on mount
   useEffect(() => {
     loadInspections();
   }, []);
+
+  // Reload inspections whenever the screen comes into focus (e.g., after creating new inspection)
+  useFocusEffect(
+    React.useCallback(() => {
+      loadInspections();
+    }, [])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -104,15 +113,6 @@ export default function InspectionsScreen() {
 
   const colors = Colors.light;
 
-  if (loading && !refreshing) {
-    return (
-      <ThemedView style={styles.container}>
-        <ActivityIndicator size="large" color={colors.tint} />
-        <ThemedText style={styles.loadingText}>Loading inspections...</ThemedText>
-      </ThemedView>
-    );
-  }
-
   return (
     <ThemedView style={styles.container}>
       <PageHeader 
@@ -120,7 +120,12 @@ export default function InspectionsScreen() {
         subtitle={`${total} ${total === 1 ? 'inspection' : 'inspections'}`}
       />
       
-      {inspections.length === 0 ? (
+      {loading && !refreshing ? (
+        <ThemedView style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.tint} />
+          <ThemedText style={styles.loadingText}>Loading inspections...</ThemedText>
+        </ThemedView>
+      ) : inspections.length === 0 ? (
         <ThemedView style={styles.emptyContainer}>
           <ThemedText style={styles.emptyText}>No inspections yet</ThemedText>
           <ThemedText style={styles.emptySubtext}>
@@ -224,9 +229,16 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     textAlign: 'center',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
   loadingText: {
     marginTop: 12,
     opacity: 0.6,
+    fontSize: 16,
   },
 });
 
