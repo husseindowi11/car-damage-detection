@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   View,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ThemedView } from '@/components/themed-view';
@@ -232,7 +233,6 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 60,
   },
   title: {
     fontSize: 28,
@@ -253,16 +253,23 @@ const styles = StyleSheet.create({
     padding: 20,
     marginHorizontal: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    // iOS shadow
+    ...(Platform.OS === 'ios' && {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+    }),
+    // Android elevation
+    ...(Platform.OS === 'android' && {
+      elevation: 3,
+    }),
   },
   cardLabel: {
     fontSize: 14,
     opacity: 0.6,
     marginBottom: 8,
+
   },
   cardTitle: {
     fontSize: 18,
@@ -272,6 +279,7 @@ const styles = StyleSheet.create({
   totalCost: {
     fontSize: 32,
     fontWeight: 'bold',
+    lineHeight: 40,
   },
   summaryText: {
     fontSize: 16,
@@ -290,11 +298,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    // iOS shadow
+    ...(Platform.OS === 'ios' && {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+    }),
+    // Android elevation
+    ...(Platform.OS === 'android' && {
+      elevation: 2,
+    }),
   },
   damageHeader: {
     flexDirection: 'row',

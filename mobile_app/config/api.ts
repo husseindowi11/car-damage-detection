@@ -4,12 +4,23 @@
  * Change the base URL here to update it across the entire app
  * 
  * Platform-specific URLs:
- * - iOS Simulator: 'http://localhost:8000'
+ * - iOS Simulator: 'http://localhost:8000' ✅ Works
+ * - iOS Physical Device: Use your computer's IP address (e.g., 'http://192.168.1.100:8000')
  * - Android Emulator: 'http://10.0.2.2:8000' (special IP to access host machine)
- * - Physical Device: Use your computer's IP address
- *   Example: 'http://192.168.1.100:8000'
+ * - Android Physical Device: Use your computer's IP address (e.g., 'http://192.168.1.100:8000')
+ * - Web: 'http://localhost:8000' ✅ Works
+ * 
+ * To find your computer's IP address:
+ * - Mac/Linux: Run `ifconfig` or `ipconfig getifaddr en0` in terminal
+ * - Windows: Run `ipconfig` in CMD and look for IPv4 Address
+ * 
+ * For physical device testing, replace 'localhost' below with your IP address
  */
 import { Platform } from 'react-native';
+
+// Set this to your computer's IP address when testing on physical devices
+// Leave as 'localhost' for simulator/emulator testing
+const DEV_HOST = 'localhost'; // Change to '192.168.1.100' (your IP) for physical devices
 
 const getBaseUrl = (): string => {
   if (!__DEV__) {
@@ -19,11 +30,14 @@ const getBaseUrl = (): string => {
   // Development URLs based on platform
   if (Platform.OS === 'android') {
     // Android emulator uses 10.0.2.2 to access host machine's localhost
-    return 'http://10.0.2.2:8000';
+    return `http://10.0.2.2:8000`;
+  }else if (Platform.OS === 'ios') {
+    return `http://192.168.1.167:8000`;
   }
   
   // iOS simulator and web can use localhost
-  return 'http://localhost:8000';
+  // For physical iOS device, change DEV_HOST to your computer's IP
+  return `http://${DEV_HOST}:8000`;
 };
 
 export const API_CONFIG = {

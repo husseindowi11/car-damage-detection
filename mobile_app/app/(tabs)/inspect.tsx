@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -10,6 +10,8 @@ import {
   Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
@@ -17,10 +19,12 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { submitInspection } from '@/services/api';
 import { Image } from 'expo-image';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { InspectionLoading } from '@/components/inspection-loading';
 
 type ImageType = 'before' | 'after';
 
 export default function InspectScreen() {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
@@ -30,6 +34,18 @@ export default function InspectScreen() {
   const [beforeImages, setBeforeImages] = useState<string[]>([]);
   const [afterImages, setAfterImages] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState('Preparing images...');
+
+  // Reset loading state when screen comes into focus (e.g., when returning from detail page)
+  useFocusEffect(
+    React.useCallback(() => {
+      // Reset all loading states when screen is focused
+      setSubmitting(false);
+      setLoadingProgress(0);
+      setCurrentStep('Preparing images...');
+    }, [])
+  );
 
   // Request camera and media library permissions
   const requestPermissions = async () => {
@@ -117,6 +133,25 @@ export default function InspectScreen() {
 
     try {
       setSubmitting(true);
+      setLoadingProgress(0);
+      setCurrentStep('Preparing images...');
+
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + 10;
+        });
+      }, 300);
+
+      // Update steps
+      setTimeout(() => setCurrentStep('Uploading images...'), 500);
+      setTimeout(() => setCurrentStep('Analyzing with AI...'), 1500);
+      setTimeout(() => setCurrentStep('Generating report...'), 2500);
+
       const response = await submitInspection(
         carName.trim(),
         carModel.trim(),
@@ -125,32 +160,36 @@ export default function InspectScreen() {
         afterImages
       );
 
+      clearInterval(progressInterval);
+      setLoadingProgress(100);
+      setCurrentStep('Complete!');
+
       if (response.success) {
-        Alert.alert(
-          'Success',
-          'Inspection submitted successfully!',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                // Reset form
-                setCarName('');
-                setCarModel('');
-                setCarYear('');
-                setBeforeImages([]);
-                setAfterImages([]);
-              },
-            },
-          ]
-        );
+        // Small delay to show completion
+        setTimeout(() => {
+          // Reset form
+          setCarName('');
+          setCarModel('');
+          setCarYear('');
+          setBeforeImages([]);
+          setAfterImages([]);
+          
+          // Reset loading states BEFORE navigation to prevent showing loading when returning
+          setSubmitting(false);
+          setLoadingProgress(0);
+          setCurrentStep('Preparing images...');
+          
+          // Navigate to inspection detail page
+          router.push(`/inspection-detail?id=${response.inspection_id}`);
+        }, 500);
       }
     } catch (error: any) {
+      setSubmitting(false);
+      setLoadingProgress(0);
       Alert.alert(
         'Error',
         error.response?.data?.message || 'Failed to submit inspection. Please try again.'
       );
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -209,6 +248,9 @@ export default function InspectScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      {submitting && (
+        <InspectionLoading progress={loadingProgress} currentStep={currentStep} />
+      )}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

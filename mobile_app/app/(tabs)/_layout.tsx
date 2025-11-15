@@ -8,20 +8,36 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
 
   return (
     <Tabs
+      initialRouteName="inspections"
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: colors.tint,
+        tabBarInactiveTintColor: colors.tabIconDefault,
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarStyle: {
+          backgroundColor: colors.background,
+        },
       }}>
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null, // Hide from tab bar
+        }}
+      />
       <Tabs.Screen
         name="inspections"
         options={{
           title: 'Inspections',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="list" size={size || 28} color={color} />
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons 
+              name={focused ? 'list' : 'list-outline'} 
+              size={24} 
+              color={color || colors.tabIconDefault} 
+            />
           ),
         }}
       />
@@ -29,8 +45,12 @@ export default function TabLayout() {
         name="inspect"
         options={{
           title: 'Inspect',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="camera" size={size || 28} color={color} />
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons 
+              name={focused ? 'camera' : 'camera-outline'} 
+              size={24} 
+              color={color || colors.tabIconDefault} 
+            />
           ),
         }}
       />
