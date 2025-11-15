@@ -41,8 +41,6 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingTop: Platform.OS === 'ios' ? 70 : 50,
     paddingBottom: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
     marginBottom: 8,
     // Enhanced shadows for gradient
     ...(Platform.OS === 'ios' && {

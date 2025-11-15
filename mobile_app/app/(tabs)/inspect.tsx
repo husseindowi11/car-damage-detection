@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   },
   imageButtonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
   },
   submitButton: {
