@@ -34,6 +34,15 @@ venv.bak/
 .env
 .env.local
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+car_damage_detection.db
+
+# Alembic migrations (if generated)
+alembic/versions/__pycache__/
+
 # IDEs
 .vscode/
 .idea/
