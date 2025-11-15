@@ -1,1 +1,4 @@
-export { useColorScheme } from 'react-native';
+// Force light mode always
+export function useColorScheme() {
+  return 'light';
+}
