@@ -7,6 +7,8 @@ import {
   View,
   Platform,
   TouchableOpacity,
+  Modal,
+  Dimensions,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ThemedView } from '@/components/themed-view';
@@ -24,7 +26,8 @@ export default function InspectionDetailScreen() {
   const colorScheme = useColorScheme();
   const [inspection, setInspection] = useState<InspectionDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeImageTab, setActiveImageTab] = useState<'before' | 'after'>('before');
+  const [activeImageTab, setActiveImageTab] = useState<'before' | 'after' | 'bounded'>('before');
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -35,10 +38,12 @@ export default function InspectionDetailScreen() {
   // Set default tab based on available images
   useEffect(() => {
     if (inspection) {
-      if (inspection.before_images.length === 0 && inspection.after_images.length > 0) {
-        setActiveImageTab('after');
-      } else if (inspection.before_images.length > 0) {
+      if (inspection.before_images.length > 0) {
         setActiveImageTab('before');
+      } else if (inspection.after_images.length > 0) {
+        setActiveImageTab('after');
+      } else if (inspection.bounded_images && inspection.bounded_images.length > 0) {
+        setActiveImageTab('bounded');
       }
     }
   }, [inspection]);
@@ -113,6 +118,38 @@ export default function InspectionDetailScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      {/* Image Preview Modal */}
+      <Modal
+        visible={previewImage !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewImage(null)}
+      >
+        <View style={styles.modalContainer}>
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setPreviewImage(null)}
+          >
+            <View style={styles.modalContent}>
+              {previewImage && (
+                <Image
+                  source={{ uri: previewImage }}
+                  style={styles.previewImage}
+                  contentFit="contain"
+                />
+              )}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setPreviewImage(null)}
+              >
+                <ThemedText style={styles.closeButtonText}>✕</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -192,7 +229,7 @@ export default function InspectionDetailScreen() {
         )}
 
         {/* Images Section */}
-        {(inspection.before_images.length > 0 || inspection.after_images.length > 0) && (
+        {(inspection.before_images.length > 0 || inspection.after_images.length > 0 || (inspection.bounded_images && inspection.bounded_images.length > 0)) && (
           <ThemedView style={styles.section}>
             <ThemedText style={styles.sectionTitle}>Images</ThemedText>
             
@@ -241,19 +278,65 @@ export default function InspectionDetailScreen() {
                   After ({inspection.after_images.length})
                 </ThemedText>
               </TouchableOpacity>
+
+              {/* Bounded Images Tab (only show if damages exist) */}
+              {inspection.bounded_images && inspection.bounded_images.length > 0 && (
+                <TouchableOpacity
+                  style={[
+                    styles.tab,
+                    activeImageTab === 'bounded' && [
+                      styles.tabActive,
+                      { backgroundColor: colors.tint + '20', borderBottomColor: colors.tint },
+                    ],
+                  ]}
+                  onPress={() => setActiveImageTab('bounded')}
+                >
+                  <ThemedText
+                    style={[
+                      styles.tabText,
+                      activeImageTab === 'bounded' && { color: colors.tint, fontWeight: '600' },
+                    ]}
+                  >
+                    Damages ({inspection.bounded_images.length})
+                  </ThemedText>
+                </TouchableOpacity>
+              )}
             </ThemedView>
 
             {/* Image Content */}
             <ThemedView style={styles.imageContent}>
+              {activeImageTab === 'bounded' && inspection.bounded_images && inspection.bounded_images.length > 0 && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {inspection.bounded_images.map((imagePath, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => setPreviewImage(getImageUrl(imagePath))}
+                      activeOpacity={0.8}
+                    >
+                      <Image
+                        source={{ uri: getImageUrl(imagePath) }}
+                        style={styles.image}
+                        contentFit="cover"
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+
               {activeImageTab === 'before' && inspection.before_images.length > 0 && (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   {inspection.before_images.map((imagePath, index) => (
-                    <Image
+                    <TouchableOpacity
                       key={index}
-                      source={{ uri: getImageUrl(imagePath) }}
-                      style={styles.image}
-                      contentFit="cover"
-                    />
+                      onPress={() => setPreviewImage(getImageUrl(imagePath))}
+                      activeOpacity={0.8}
+                    >
+                      <Image
+                        source={{ uri: getImageUrl(imagePath) }}
+                        style={styles.image}
+                        contentFit="cover"
+                      />
+                    </TouchableOpacity>
                   ))}
                 </ScrollView>
               )}
@@ -261,21 +344,35 @@ export default function InspectionDetailScreen() {
               {activeImageTab === 'after' && inspection.after_images.length > 0 && (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   {inspection.after_images.map((imagePath, index) => (
-                    <Image
+                    <TouchableOpacity
                       key={index}
-                      source={{ uri: getImageUrl(imagePath) }}
-                      style={styles.image}
-                      contentFit="cover"
-                    />
+                      onPress={() => setPreviewImage(getImageUrl(imagePath))}
+                      activeOpacity={0.8}
+                    >
+                      <Image
+                        source={{ uri: getImageUrl(imagePath) }}
+                        style={styles.image}
+                        contentFit="cover"
+                      />
+                    </TouchableOpacity>
                   ))}
                 </ScrollView>
               )}
 
               {((activeImageTab === 'before' && inspection.before_images.length === 0) ||
-                (activeImageTab === 'after' && inspection.after_images.length === 0)) && (
+                (activeImageTab === 'after' && inspection.after_images.length === 0) ||
+                (activeImageTab === 'bounded' && (!inspection.bounded_images || inspection.bounded_images.length === 0))) && (
                 <ThemedView style={styles.emptyImages}>
-                  <ThemedText style={styles.emptyImagesText}>
-                    No {activeImageTab} images available
+                  <ThemedText style={styles.emptyImagesIcon}>📷</ThemedText>
+                  <ThemedText style={styles.emptyImagesTitle}>
+                    No {activeImageTab === 'before' ? 'Before' : activeImageTab === 'after' ? 'After' : 'Damage'} Images
+                  </ThemedText>
+                  <ThemedText style={styles.emptyImagesSubtitle}>
+                    {activeImageTab === 'before' 
+                      ? 'No pickup images were uploaded for this inspection.'
+                      : activeImageTab === 'after'
+                      ? 'No return images were uploaded for this inspection.'
+                      : 'No damage highlights available for this inspection.'}
                   </ThemedText>
                 </ThemedView>
               )}
@@ -442,7 +539,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
   },
   tabText: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '500',
   },
   imageContent: {
@@ -459,13 +556,59 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyImagesText: {
-    fontSize: 16,
+  emptyImagesIcon: {
+    fontSize: 48,
+    marginBottom: 12,
+    opacity: 0.3,
+  },
+  emptyImagesTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyImagesSubtitle: {
+    fontSize: 14,
     opacity: 0.6,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
   loadingText: {
     marginTop: 12,
     opacity: 0.6,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+  },
+  modalOverlay: {
+    flex: 1,
+  },
+  modalContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewImage: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 40,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
 

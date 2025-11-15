@@ -20,6 +20,7 @@ export interface DamageReport {
 export interface SavedImages {
   before: string[];
   after: string[];
+  bounded: string[];
 }
 
 export interface InspectionResponse {
@@ -61,6 +62,7 @@ export interface InspectionDetail {
   total_damage_cost: number;
   before_images: string[];
   after_images: string[];
+  bounded_images: string[];
   created_at: string;
 }
 
