@@ -6,7 +6,11 @@ An AI-powered vehicle inspection system that automatically detects and analyzes 
 
 - **🔗 Production API**: [https://car-damage-detection-x3i7.onrender.com/](https://car-damage-detection-x3i7.onrender.com/)
 - **📖 API Documentation**: [https://car-damage-detection-x3i7.onrender.com/docs](https://car-damage-detection-x3i7.onrender.com/docs)
-- **📱 Android APK**: *Coming soon - check releases*
+- **📱 Android APK**: https://expo.dev/accounts/hseneldowi/projects/car-damage-detection/builds/be5b2a5a-718f-4156-baa8-b48d58619729
+
+> **⚠️ Important Note - Free Tier Hosting:**  
+> The backend is hosted on Render's free tier, which **spins down with inactivity**. This can cause the first request to take **50+ seconds** to respond.  
+> **Before using the mobile app**, please open the production URL in your browser to wake up the server. Once active, the API will respond normally.
 
 ---
 
