@@ -24,7 +24,7 @@ const DEV_HOST = 'localhost'; // Change to '192.168.1.100' (your IP) for physica
 
 const getBaseUrl = (): string => {
   if (!__DEV__) {
-    return 'https://your-production-api.com'; // Production URL
+    return 'https://car-damage-detection-x3i7.onrender.com/'; // Production URL
   }
   
   // Development URLs based on platform
