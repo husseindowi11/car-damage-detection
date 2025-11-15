@@ -137,4 +137,33 @@ class InspectionService:
             List of inspection objects
         """
         return db.query(Inspection).filter(Inspection.car_year == car_year).order_by(Inspection.created_at.desc()).all()
+    
+    @staticmethod
+    def delete_inspection(db: Session, inspection_id: str) -> bool:
+        """
+        Delete an inspection by ID.
+        
+        Args:
+            db: Database session
+            inspection_id: Inspection ID (UUID string)
+            
+        Returns:
+            True if deleted successfully, False if not found
+        """
+        try:
+            inspection = db.query(Inspection).filter(Inspection.id == inspection_id).first()
+            
+            if inspection is None:
+                return False
+            
+            db.delete(inspection)
+            db.commit()
+            
+            logger.info(f"Deleted inspection: {inspection_id}")
+            return True
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error deleting inspection {inspection_id}: {str(e)}")
+            raise
 

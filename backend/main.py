@@ -474,6 +474,70 @@ async def get_inspection_details(
         )
 
 
+@app.delete(
+    "/api/inspections/{inspection_id}",
+    response_model=dict,
+    status_code=200,
+    tags=["inspection"],
+    summary="Delete inspection",
+    description="Delete a specific inspection by ID (Admin/Testing only)",
+    responses={
+        200: {
+            "description": "Successful deletion",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": True,
+                        "message": "Inspection deleted successfully",
+                        "data": None
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "Inspection not found",
+            "model": ErrorResponse
+        },
+        500: {
+            "description": "Internal server error",
+            "model": ErrorResponse
+        }
+    }
+)
+async def delete_inspection(
+    inspection_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a specific inspection by ID.
+    
+    **Note:** This endpoint is for admin/testing purposes only and is not available in the mobile app.
+    """
+    try:
+        deleted = InspectionService.delete_inspection(db, inspection_id)
+        
+        if not deleted:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Inspection with ID '{inspection_id}' not found"
+            )
+        
+        return {
+            "status": True,
+            "message": "Inspection deleted successfully",
+            "data": None
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting inspection {inspection_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete inspection: {str(e)}"
+        )
+
+
 # ============================================================================
 # EXCEPTION HANDLERS
 # ============================================================================

@@ -26,6 +26,7 @@ export default function InspectionDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [activeImageTab, setActiveImageTab] = useState<'before' | 'after' | 'bounded'>('before');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [imageLoadingStates, setImageLoadingStates] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     if (id) {
@@ -131,11 +132,20 @@ export default function InspectionDetailScreen() {
           >
             <View style={styles.modalContent}>
               {previewImage && (
-                <Image
-                  source={{ uri: previewImage }}
-                  style={styles.previewImage}
-                  contentFit="contain"
-                />
+                <>
+                  <Image
+                    source={{ uri: previewImage }}
+                    style={styles.previewImage}
+                    contentFit="contain"
+                    onLoadStart={() => setImageLoadingStates(prev => ({ ...prev, [`preview-${previewImage}`]: true }))}
+                    onLoadEnd={() => setImageLoadingStates(prev => ({ ...prev, [`preview-${previewImage}`]: false }))}
+                  />
+                  {imageLoadingStates[`preview-${previewImage}`] && (
+                    <View style={styles.imageLoadingOverlay}>
+                      <ActivityIndicator size="large" color={Colors.light.tint} />
+                    </View>
+                  )}
+                </>
               )}
               <TouchableOpacity
                 style={styles.closeButton}
@@ -309,12 +319,20 @@ export default function InspectionDetailScreen() {
                       key={index}
                       onPress={() => setPreviewImage(getImageUrl(imagePath))}
                       activeOpacity={0.8}
+                      style={styles.imageContainer}
                     >
                       <Image
                         source={{ uri: getImageUrl(imagePath) }}
                         style={styles.image}
                         contentFit="cover"
+                        onLoadStart={() => setImageLoadingStates(prev => ({ ...prev, [imagePath]: true }))}
+                        onLoadEnd={() => setImageLoadingStates(prev => ({ ...prev, [imagePath]: false }))}
                       />
+                      {imageLoadingStates[imagePath] && (
+                        <View style={styles.imageLoadingOverlay}>
+                          <ActivityIndicator size="small" color={Colors.light.tint} />
+                        </View>
+                      )}
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -327,12 +345,20 @@ export default function InspectionDetailScreen() {
                       key={index}
                       onPress={() => setPreviewImage(getImageUrl(imagePath))}
                       activeOpacity={0.8}
+                      style={styles.imageContainer}
                     >
                       <Image
                         source={{ uri: getImageUrl(imagePath) }}
                         style={styles.image}
                         contentFit="cover"
+                        onLoadStart={() => setImageLoadingStates(prev => ({ ...prev, [imagePath]: true }))}
+                        onLoadEnd={() => setImageLoadingStates(prev => ({ ...prev, [imagePath]: false }))}
                       />
+                      {imageLoadingStates[imagePath] && (
+                        <View style={styles.imageLoadingOverlay}>
+                          <ActivityIndicator size="small" color={Colors.light.tint} />
+                        </View>
+                      )}
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -345,12 +371,20 @@ export default function InspectionDetailScreen() {
                       key={index}
                       onPress={() => setPreviewImage(getImageUrl(imagePath))}
                       activeOpacity={0.8}
+                      style={styles.imageContainer}
                     >
                       <Image
                         source={{ uri: getImageUrl(imagePath) }}
                         style={styles.image}
                         contentFit="cover"
+                        onLoadStart={() => setImageLoadingStates(prev => ({ ...prev, [imagePath]: true }))}
+                        onLoadEnd={() => setImageLoadingStates(prev => ({ ...prev, [imagePath]: false }))}
                       />
+                      {imageLoadingStates[imagePath] && (
+                        <View style={styles.imageLoadingOverlay}>
+                          <ActivityIndicator size="small" color={Colors.light.tint} />
+                        </View>
+                      )}
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -539,11 +573,25 @@ const styles = StyleSheet.create({
   imageContent: {
     minHeight: 220,
   },
+  imageContainer: {
+    position: 'relative',
+    marginRight: 12,
+  },
   image: {
     width: 200,
     height: 200,
     borderRadius: 12,
-    marginRight: 12,
+  },
+  imageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
   },
   emptyImages: {
     padding: 40,

@@ -35,6 +35,7 @@ export default function InspectScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('Preparing images...');
+  const [imageLoadingStates, setImageLoadingStates] = useState<{ [key: string]: boolean }>({});
 
   // Reset loading state when screen comes into focus (e.g., when returning from detail page)
   useFocusEffect(
@@ -209,7 +210,18 @@ export default function InspectScreen() {
           <View style={styles.imageGrid}>
             {images.map((uri, index) => (
               <View key={index} style={styles.imageWrapper}>
-                <Image source={{ uri }} style={styles.image} contentFit="cover" />
+                <Image 
+                  source={{ uri }} 
+                  style={styles.image} 
+                  contentFit="cover"
+                  onLoadStart={() => setImageLoadingStates(prev => ({ ...prev, [uri]: true }))}
+                  onLoadEnd={() => setImageLoadingStates(prev => ({ ...prev, [uri]: false }))}
+                />
+                {imageLoadingStates[uri] && (
+                  <View style={styles.imageLoadingOverlay}>
+                    <ActivityIndicator size="small" color={colors.tint} />
+                  </View>
+                )}
                 <TouchableOpacity
                   style={styles.removeButton}
                   onPress={() => removeImage(type, index)}
@@ -390,6 +402,17 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  imageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
   },
   removeButton: {
     position: 'absolute',

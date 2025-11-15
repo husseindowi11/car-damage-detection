@@ -393,17 +393,6 @@ GEMINI_MODEL=gemini-2.5-flash
 
 ---
 
-## 🤝 Contributing
-
-This is a private project. For questions or issues, contact the development team.
-
----
-
-## 📄 License
-
-Proprietary - All rights reserved
-
----
 
 ## 🎯 Future Enhancements
 
@@ -426,16 +415,3 @@ Proprietary - All rights reserved
 4. **Distance**: Stand at the same distance for before/after shots
 5. **Focus**: Ensure images are clear and in focus
 6. **Coverage**: Don't miss any part of the vehicle
-
----
-
-## 📞 Support
-
-For technical support or questions:
-- Check the troubleshooting section above
-- Review API docs at `/docs` endpoint
-- Contact the development team
-
----
-
-**Made with ❤️ for efficient vehicle damage assessment**
