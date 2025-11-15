@@ -13,7 +13,7 @@ import type {
 
 const apiClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
-  timeout: 30000, // 30 seconds for image uploads
+  timeout: 180000, // 3 minutes for AI processing
   headers: {
     'Content-Type': 'multipart/form-data',
   },

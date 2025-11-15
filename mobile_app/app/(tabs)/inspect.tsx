@@ -213,8 +213,9 @@ export default function InspectScreen() {
                 <TouchableOpacity
                   style={styles.removeButton}
                   onPress={() => removeImage(type, index)}
+                  activeOpacity={0.7}
                 >
-                  <IconSymbol name="xmark.circle.fill" size={24} color="#EF4444" />
+                  <ThemedText style={styles.removeButtonText}>✕</ThemedText>
                 </TouchableOpacity>
               </View>
             ))}
@@ -394,8 +395,30 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    ...Platform.select({
+      android: {
+        elevation: 5,
+      },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3,
+      },
+    }),
+  },
+  removeButtonText: {
+    color: '#EF4444',
+    fontSize: 20,
+    fontWeight: 'bold',
+    lineHeight: 20,
   },
   imageActions: {
     flexDirection: 'row',

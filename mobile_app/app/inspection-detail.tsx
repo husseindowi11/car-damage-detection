@@ -213,14 +213,13 @@ export default function InspectionDetailScreen() {
                 <ThemedText style={styles.damageType}>{damage.damage_type}</ThemedText>
                 <ThemedText style={styles.damageDescription}>{damage.description}</ThemedText>
                 
-                <ThemedView style={styles.damageFooter}>
-                  <ThemedText style={styles.damageAction}>
-                    Action: {damage.recommended_action}
-                  </ThemedText>
-                  <ThemedText style={[styles.damageCost, { color: colors.tint }]}>
-                    {formatCurrency(damage.estimated_cost_usd)}
-                  </ThemedText>
-                </ThemedView>
+                <ThemedText style={[styles.damageCost, { color: colors.tint }]}>
+                  {formatCurrency(damage.estimated_cost_usd)}
+                </ThemedText>
+                
+                <ThemedText style={styles.damageAction}>
+                  Action: {damage.recommended_action}
+                </ThemedText>
               </ThemedView>
             ))}
           </ThemedView>
@@ -501,21 +500,18 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 12,
   },
-  damageFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
+  damageCost: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 8,
+    marginBottom: 8,
   },
   damageAction: {
     fontSize: 14,
     opacity: 0.7,
-  },
-  damageCost: {
-    fontSize: 16,
-    fontWeight: '600',
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
   },
   tabContainer: {
     flexDirection: 'row',
