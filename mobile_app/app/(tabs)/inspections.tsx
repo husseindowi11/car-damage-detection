@@ -14,13 +14,11 @@ import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { PageHeader } from '@/components/page-header';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { getInspections } from '@/services/api';
 import type { InspectionListItem } from '@/types/api';
 
 export default function InspectionsScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
   const [inspections, setInspections] = useState<InspectionListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -73,7 +71,7 @@ export default function InspectionsScreen() {
   };
 
   const renderInspectionItem = ({ item }: { item: InspectionListItem }) => {
-    const colors = Colors[colorScheme ?? 'light'];
+    const colors = Colors.light;
     
     return (
       <TouchableOpacity
@@ -104,7 +102,7 @@ export default function InspectionsScreen() {
     );
   };
 
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors.light;
 
   if (loading && !refreshing) {
     return (

@@ -8,7 +8,6 @@ import {
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 interface InspectionLoadingProps {
   progress: number; // 0-100
@@ -16,8 +15,7 @@ interface InspectionLoadingProps {
 }
 
 export function InspectionLoading({ progress, currentStep }: InspectionLoadingProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors.light;
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

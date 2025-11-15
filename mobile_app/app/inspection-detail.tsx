@@ -14,7 +14,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { getInspectionDetails } from '@/services/api';
 import { getImageUrl } from '@/config/api';
 import type { InspectionDetail, DamageItem } from '@/types/api';
@@ -23,7 +22,6 @@ import { Image } from 'expo-image';
 export default function InspectionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const colorScheme = useColorScheme();
   const [inspection, setInspection] = useState<InspectionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImageTab, setActiveImageTab] = useState<'before' | 'after' | 'bounded'>('before');
@@ -97,7 +95,7 @@ export default function InspectionDetailScreen() {
     }
   };
 
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors.light;
 
   if (loading) {
     return (

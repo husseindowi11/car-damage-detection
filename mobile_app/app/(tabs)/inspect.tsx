@@ -16,7 +16,6 @@ import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { PageHeader } from '@/components/page-header';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { submitInspection } from '@/services/api';
 import { Image } from 'expo-image';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -26,8 +25,7 @@ type ImageType = 'before' | 'after';
 
 export default function InspectScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors.light;
 
   const [carName, setCarName] = useState('');
   const [carModel, setCarModel] = useState('');

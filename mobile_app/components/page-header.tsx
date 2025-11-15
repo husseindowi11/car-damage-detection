@@ -4,7 +4,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedView } from './themed-view';
 import { ThemedText } from './themed-text';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 interface PageHeaderProps {
   title: string;
@@ -12,13 +11,10 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, subtitle }: PageHeaderProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors.light;
 
-  // Fancy gradient colors based on theme - lighter to darker shades of primary color
-  const gradientColors = colorScheme === 'dark'
-    ? ['#4a90a4', '#0a7ea4', '#0a8aa9']  // Light teal -> teal -> slightly darker teal for dark mode
-    : ['#4a9ec4', colors.tint, '#0a8aa9']; // Light teal -> primary teal -> slightly darker teal for light mode
+  // Gradient colors - lighter to darker shades of primary color
+  const gradientColors = ['#4a9ec4', colors.tint, '#0a8aa9'];
 
   return (
     <LinearGradient
