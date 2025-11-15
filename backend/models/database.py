@@ -21,6 +21,7 @@ class Inspection(Base):
     total_damage_cost = Column(Float, nullable=False, default=0.0)
     before_images = Column(JSON, nullable=False)  # Array of image paths
     after_images = Column(JSON, nullable=False)  # Array of image paths
+    bounded_images = Column(JSON, nullable=True, default=lambda: [])  # Array of bounded image paths (only if damages exist)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     
     def __repr__(self):

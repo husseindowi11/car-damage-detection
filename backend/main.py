@@ -21,6 +21,7 @@ from services.ai_service import AIService
 from services.inspection_service import InspectionService
 from utils.file_handler import FileHandler
 from utils.validators import validate_image_file
+from utils.image_utils import ImageProcessor
 from models.schemas import (
     InspectionResponse,
     InspectionListResponse,
@@ -246,8 +247,38 @@ async def inspect_vehicle(
                 file_handler.copy_multiple_to_permanent_storage(before_paths, after_paths)
             )
             
-            # Create inspection record in database
+            # Generate bounded images if damages were detected
             damage_report = result["report"]
+            bounded_image_paths = []
+            
+            if damage_report.get("new_damage"):
+                logger.info(f"Generating bounded images for {len(damage_report['new_damage'])} damages")
+                try:
+                    from pathlib import Path
+                    from datetime import datetime
+                    
+                    # Get the output directory for bounded images (same as after images)
+                    date_str = datetime.now().strftime("%Y-%m-%d")
+                    output_dir = Path("uploads") / date_str / inspection_id
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    # Create bounded images with damage highlights
+                    bounded_image_paths = ImageProcessor.create_bounded_images(
+                        permanent_after_paths,
+                        damage_report,
+                        output_dir
+                    )
+                    
+                    logger.info(f"Created {len(bounded_image_paths)} bounded images")
+                    
+                except Exception as e:
+                    logger.error(f"Error generating bounded images: {str(e)}")
+                    # Continue without bounded images rather than failing the entire request
+                    bounded_image_paths = []
+            else:
+                logger.info("No damages detected, skipping bounded image generation")
+            
+            # Create inspection record in database
             total_cost = damage_report.get("total_estimated_cost_usd", 0.0)
             InspectionService.create_inspection(
                 db,
@@ -258,7 +289,8 @@ async def inspect_vehicle(
                 damage_report,
                 total_cost,
                 permanent_before_paths,
-                permanent_after_paths
+                permanent_after_paths,
+                bounded_image_paths
             )
             
             logger.info(f"Analysis completed successfully. Inspection ID: {inspection_id}")
@@ -272,7 +304,8 @@ async def inspect_vehicle(
                 "report": damage_report,
                 "saved_images": {
                     "before": permanent_before_paths,
-                    "after": permanent_after_paths
+                    "after": permanent_after_paths,
+                    "bounded": bounded_image_paths
                 }
             }
             
@@ -404,6 +437,7 @@ async def get_inspection_details(
             "total_damage_cost": inspection.total_damage_cost,
             "before_images": inspection.before_images if isinstance(inspection.before_images, list) else [],
             "after_images": inspection.after_images if isinstance(inspection.after_images, list) else [],
+            "bounded_images": inspection.bounded_images if isinstance(inspection.bounded_images, list) else [],
             "created_at": inspection.created_at.isoformat() if inspection.created_at else ""
         }
         

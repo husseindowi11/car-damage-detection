@@ -22,7 +22,8 @@ class InspectionService:
         damage_report: Dict[str, Any],
         total_damage_cost: float,
         before_images: List[str],
-        after_images: List[str]
+        after_images: List[str],
+        bounded_images: List[str] = None
     ) -> Inspection:
         """
         Create a new inspection record in the database.
@@ -37,6 +38,7 @@ class InspectionService:
             total_damage_cost: Total damage cost
             before_images: List of before image paths
             after_images: List of after image paths
+            bounded_images: List of bounded image paths (optional, only if damages exist)
             
         Returns:
             Created inspection object
@@ -50,14 +52,15 @@ class InspectionService:
                 damage_report=damage_report,
                 total_damage_cost=total_damage_cost,
                 before_images=before_images,
-                after_images=after_images
+                after_images=after_images,
+                bounded_images=bounded_images or []
             )
             
             db.add(db_inspection)
             db.commit()
             db.refresh(db_inspection)
             
-            logger.info(f"Created inspection: {inspection_id} for {car_name} {car_model} {car_year}")
+            logger.info(f"Created inspection: {inspection_id} for {car_name} {car_model} {car_year} with {len(bounded_images or [])} bounded images")
             return db_inspection
             
         except Exception as e:

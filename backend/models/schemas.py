@@ -5,6 +5,24 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 
 
+class BoundingBox(BaseModel):
+    """Bounding box coordinates for damage location (as percentages 0.0-1.0)"""
+    x_min_pct: float = Field(..., description="Left edge (0.0 = far left, 1.0 = far right)", ge=0.0, le=1.0)
+    y_min_pct: float = Field(..., description="Top edge (0.0 = top, 1.0 = bottom)", ge=0.0, le=1.0)
+    x_max_pct: float = Field(..., description="Right edge (0.0 = far left, 1.0 = far right)", ge=0.0, le=1.0)
+    y_max_pct: float = Field(..., description="Bottom edge (0.0 = top, 1.0 = bottom)", ge=0.0, le=1.0)
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "x_min_pct": 0.15,
+                "y_min_pct": 0.22,
+                "x_max_pct": 0.41,
+                "y_max_pct": 0.48
+            }
+        }
+
+
 class DamageItem(BaseModel):
     """Individual damage item detected in vehicle"""
     car_part: str = Field(..., description="Specific car part affected (e.g., rear bumper, front bumper, right fender)")
@@ -13,6 +31,8 @@ class DamageItem(BaseModel):
     recommended_action: str = Field(..., description="Recommended action: repair, repaint, or replace")
     estimated_cost_usd: float = Field(..., description="Estimated repair cost in USD", ge=0)
     description: str = Field(..., description="Short human-readable description of the damage")
+    image_index: int = Field(..., description="AFTER image index (1-based) that shows this damage most clearly", ge=1)
+    bounding_box: BoundingBox = Field(..., description="Bounding box coordinates for damage location in the specified AFTER image")
     
     class Config:
         json_schema_extra = {
@@ -22,7 +42,14 @@ class DamageItem(BaseModel):
                 "severity": "moderate",
                 "recommended_action": "repair",
                 "estimated_cost_usd": 350.0,
-                "description": "Dent on rear bumper, approximately 3 inches in diameter"
+                "description": "Dent on rear bumper, approximately 3 inches in diameter",
+                "image_index": 1,
+                "bounding_box": {
+                    "x_min_pct": 0.15,
+                    "y_min_pct": 0.22,
+                    "x_max_pct": 0.41,
+                    "y_max_pct": 0.48
+                }
             }
         }
 
@@ -56,6 +83,7 @@ class SavedImages(BaseModel):
     """Paths to saved images"""
     before: List[str] = Field(..., description="List of paths to saved BEFORE images (multiple angles)")
     after: List[str] = Field(..., description="List of paths to saved AFTER images (multiple angles)")
+    bounded: List[str] = Field(default=[], description="List of paths to AFTER images with bounding boxes drawn (only if damages detected)")
     
     class Config:
         json_schema_extra = {
@@ -67,6 +95,10 @@ class SavedImages(BaseModel):
                 "after": [
                     "uploads/2024-01-15/abc123/after_1.jpg",
                     "uploads/2024-01-15/abc123/after_2.jpg"
+                ],
+                "bounded": [
+                    "uploads/2024-01-15/abc123/bounded_1.jpg",
+                    "uploads/2024-01-15/abc123/bounded_2.jpg"
                 ]
             }
         }
@@ -112,6 +144,9 @@ class InspectionResponse(BaseModel):
                     "after": [
                         "uploads/2024-01-15/550e8400-e29b-41d4-a716-446655440000/after_1.jpg",
                         "uploads/2024-01-15/550e8400-e29b-41d4-a716-446655440000/after_2.jpg"
+                    ],
+                    "bounded": [
+                        "uploads/2024-01-15/550e8400-e29b-41d4-a716-446655440000/bounded_1.jpg"
                     ]
                 }
             }
@@ -180,6 +215,7 @@ class InspectionDetail(BaseModel):
     total_damage_cost: float = Field(..., description="Total estimated damage cost in USD")
     before_images: List[str] = Field(..., description="List of BEFORE image paths")
     after_images: List[str] = Field(..., description="List of AFTER image paths")
+    bounded_images: List[str] = Field(default=[], description="List of AFTER images with bounding boxes drawn (only if damages detected)")
     created_at: str = Field(..., description="Inspection creation timestamp")
     
     class Config:
@@ -210,6 +246,9 @@ class InspectionDetail(BaseModel):
                 ],
                 "after_images": [
                     "uploads/2024-01-15/550e8400-e29b-41d4-a716-446655440000/after_1.jpg"
+                ],
+                "bounded_images": [
+                    "uploads/2024-01-15/550e8400-e29b-41d4-a716-446655440000/bounded_1.jpg"
                 ],
                 "created_at": "2024-01-15T10:30:00"
             }

@@ -26,13 +26,19 @@ AFTER images – vehicle at return (from the same angles)
 
 Your tasks:
 
-Compare ALL images carefully across all angles.
+1. Carefully examine ALL BEFORE images to understand the vehicle's initial condition.
 
-Detect ONLY the NEW damages visible in the AFTER images.
+2. Carefully examine ALL AFTER images to identify ANY visible damage.
 
-Ignore all pre-existing damage visible in the BEFORE images.
+3. Compare BEFORE vs AFTER to determine which damages are NEW (not present in BEFORE images).
 
-Cross-reference all angles to get a complete view of each damage.
+4. Report ALL new damages found in AFTER images that were NOT present in BEFORE images.
+
+5. Be thorough - examine each car part carefully: bumpers, fenders, doors, hood, trunk, lights, mirrors, wheels, windows, panels.
+
+6. Look for all types of damage: dents, scratches, cracks, deformation, paint damage, broken parts, misalignment.
+
+7. Cross-reference multiple angles to confirm each damage and select the clearest view for bounding boxes.
 
 For each new damage, identify:
 
@@ -45,6 +51,14 @@ a short human-readable description
 severity (minor, moderate, major)
 
 recommended action (repair, repaint, replace)
+
+which AFTER image index (1-based) shows this damage most clearly
+
+precise bounding box coordinates for the damage location in that AFTER image, as percentages (0.0 to 1.0):
+  • x_min_pct: left edge (0.0 = far left, 1.0 = far right)
+  • y_min_pct: top edge (0.0 = top, 1.0 = bottom)
+  • x_max_pct: right edge (0.0 = far left, 1.0 = far right)
+  • y_max_pct: bottom edge (0.0 = top, 1.0 = bottom)
 
 a realistic repair cost estimate in USD using:
 • labor: $60–$120/hr
@@ -62,7 +76,14 @@ Output ONLY a JSON object in the following structure:
       "severity": "",
       "recommended_action": "",
       "estimated_cost_usd": 0,
-      "description": ""
+      "description": "",
+      "image_index": 1,
+      "bounding_box": {
+        "x_min_pct": 0.0,
+        "y_min_pct": 0.0,
+        "x_max_pct": 0.0,
+        "y_max_pct": 0.0
+      }
     }
   ],
   "total_estimated_cost_usd": 0,
@@ -71,9 +92,17 @@ Output ONLY a JSON object in the following structure:
 
 Rules:
 
-Do NOT include bounding box coordinates.
+BE THOROUGH - Report ALL new damages found, even minor ones like small scratches or dents.
 
-Do NOT include explanations outside JSON.
+ALWAYS include precise bounding box coordinates for each damage.
+
+The bounding box must tightly fit around the visible damage area.
+
+The image_index must refer to the AFTER image that shows this damage most clearly (1 = first AFTER image, 2 = second, etc.).
+
+Do NOT miss any visible damage in the AFTER images - your job is to catch everything.
+
+Output ONLY valid JSON - no explanations, no markdown formatting, just the raw JSON object.
 
 If no new damage exists, return:
 
