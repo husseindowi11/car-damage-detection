@@ -6,10 +6,13 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  View,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
+import { PageHeader } from '@/components/page-header';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { getInspections } from '@/services/api';
@@ -74,29 +77,29 @@ export default function InspectionsScreen() {
     
     return (
       <TouchableOpacity
-        style={[styles.itemContainer, { backgroundColor: colors.background }]}
+        style={styles.itemContainer}
         onPress={() => router.push(`/inspection-detail?id=${item.id}`)}
         activeOpacity={0.7}
       >
-        <ThemedView style={styles.itemContent}>
-          <ThemedView style={styles.itemHeader}>
+        <View style={[styles.itemContent, { backgroundColor: colors.background }]}>
+          <View style={styles.itemHeader}>
             <ThemedText type="defaultSemiBold" style={styles.carName}>
               {item.car_name}
             </ThemedText>
             <ThemedText style={[styles.cost, { color: colors.tint }]}>
               {formatCurrency(item.total_damage_cost)}
             </ThemedText>
-          </ThemedView>
+          </View>
           
-          <ThemedView style={styles.itemDetails}>
+          <View style={styles.itemDetails}>
             <ThemedText style={styles.carInfo}>
               {item.car_model} • {item.car_year}
             </ThemedText>
             <ThemedText style={styles.date}>
               {formatDate(item.created_at)}
             </ThemedText>
-          </ThemedView>
-        </ThemedView>
+          </View>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -114,15 +117,6 @@ export default function InspectionsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <ThemedText type="title" style={styles.title}>
-          Inspections
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          {total} {total === 1 ? 'inspection' : 'inspections'}
-        </ThemedText>
-      </ThemedView>
-
       {inspections.length === 0 ? (
         <ThemedView style={styles.emptyContainer}>
           <ThemedText style={styles.emptyText}>No inspections yet</ThemedText>
@@ -136,6 +130,14 @@ export default function InspectionsScreen() {
           renderItem={renderInspectionItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
+          ListHeaderComponent={
+            <View style={styles.headerWrapper}>
+              <PageHeader 
+                title="Inspections" 
+                subtitle={`${total} ${total === 1 ? 'inspection' : 'inspections'}`}
+              />
+            </View>
+          }
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -154,63 +156,66 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    padding: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    opacity: 0.6,
+  headerWrapper: {
+    marginHorizontal: -16,
+    marginTop: -16,
+    marginBottom: 8,
   },
   listContent: {
     padding: 16,
-    paddingTop: 0,
   },
   itemContainer: {
     borderRadius: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    paddingTop: 8,
+    marginBottom: 16,
+    // iOS shadow
+    ...(Platform.OS === 'ios' && {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+    }),
+    // Android elevation
+    ...(Platform.OS === 'android' && {
+      elevation: 3,
+    }),
   },
   itemContent: {
-    padding: 16,
+    padding: 20,
+    borderRadius: 16,
   },
   itemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+    backgroundColor: 'transparent',
   },
   carName: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     flex: 1,
+    marginRight: 12,
   },
   cost: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
   },
   itemDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   carInfo: {
-    fontSize: 14,
-    opacity: 0.7,
+    fontSize: 15,
+    opacity: 0.6,
+    fontWeight: '500',
   },
   date: {
-    fontSize: 12,
+    fontSize: 13,
     opacity: 0.5,
+    fontWeight: '400',
   },
   emptyContainer: {
     flex: 1,

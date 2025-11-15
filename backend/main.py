@@ -41,6 +41,23 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Lifespan event handler for startup and shutdown"""
     # Startup
+    logger.info("Starting up application...")
+    
+    # Create necessary directories if they don't exist
+    from pathlib import Path
+    
+    directories = [
+        Path("uploads"),
+        Path("temp_images")
+    ]
+    
+    for directory in directories:
+        if not directory.exists():
+            directory.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Created directory: {directory}")
+        else:
+            logger.info(f"Directory already exists: {directory}")
+    
     logger.info("Initializing database...")
     init_db()
     logger.info("Database initialized successfully")

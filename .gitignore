@@ -62,9 +62,11 @@ temp/
 tmp/
 *.tmp
 
-# Uploaded files
-uploads/
-temp_images/
+# Uploaded files (keep the folders but ignore contents)
+uploads/*
+!uploads/.gitkeep
+temp_images/*
+!temp_images/.gitkeep
 
 # Node modules (for mobile app)
 node_modules/

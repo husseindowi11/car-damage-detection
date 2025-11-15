@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
+import { PageHeader } from '@/components/page-header';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { submitInspection } from '@/services/api';
@@ -70,14 +71,14 @@ export default function InspectScreen() {
 
     if (source === 'camera') {
       result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
       });
     } else {
       result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsMultipleSelection: true,
         allowsEditing: false,
         quality: 0.8,
@@ -251,20 +252,16 @@ export default function InspectScreen() {
       {submitting && (
         <InspectionLoading progress={loadingProgress} currentStep={currentStep} />
       )}
+      
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <ThemedView style={styles.header}>
-          <ThemedText type="title" style={styles.title}>
-            New Inspection
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
-            Fill in the car details and add images
-          </ThemedText>
-        </ThemedView>
+        <PageHeader 
+          title="New Inspection" 
+          subtitle="Fill in the car details and add images"
+        />
 
         {/* Form */}
         <ThemedView style={styles.form}>
@@ -344,21 +341,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
   },
-  header: {
-    padding: 20,
-    paddingTop: 60,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    opacity: 0.6,
-  },
   form: {
     padding: 20,
+    paddingTop: 30,
   },
   formSection: {
     marginBottom: 20,
