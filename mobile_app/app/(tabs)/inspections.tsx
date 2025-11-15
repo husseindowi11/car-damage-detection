@@ -117,6 +117,11 @@ export default function InspectionsScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <PageHeader 
+        title="Inspections" 
+        subtitle={`${total} ${total === 1 ? 'inspection' : 'inspections'}`}
+      />
+      
       {inspections.length === 0 ? (
         <ThemedView style={styles.emptyContainer}>
           <ThemedText style={styles.emptyText}>No inspections yet</ThemedText>
@@ -130,14 +135,6 @@ export default function InspectionsScreen() {
           renderItem={renderInspectionItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
-          ListHeaderComponent={
-            <View style={styles.headerWrapper}>
-              <PageHeader 
-                title="Inspections" 
-                subtitle={`${total} ${total === 1 ? 'inspection' : 'inspections'}`}
-              />
-            </View>
-          }
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -156,17 +153,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerWrapper: {
-    marginHorizontal: -16,
-    marginTop: -16,
-    marginBottom: 8,
-  },
   listContent: {
     padding: 16,
+    paddingTop: 8,
   },
   itemContainer: {
     borderRadius: 16,
-    paddingTop: 8,
     marginBottom: 16,
     // iOS shadow
     ...(Platform.OS === 'ios' && {

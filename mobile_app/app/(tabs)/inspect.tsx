@@ -253,15 +253,16 @@ export default function InspectScreen() {
         <InspectionLoading progress={loadingProgress} currentStep={currentStep} />
       )}
       
+      <PageHeader 
+        title="New Inspection" 
+        subtitle="Fill in the car details and add images"
+      />
+      
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <PageHeader 
-          title="New Inspection" 
-          subtitle="Fill in the car details and add images"
-        />
 
         {/* Form */}
         <ThemedView style={styles.form}>
@@ -340,10 +341,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 40,
+    paddingTop: 0,
   },
   form: {
     padding: 20,
-    paddingTop: 30,
+    paddingTop: 8,
   },
   formSection: {
     marginBottom: 20,

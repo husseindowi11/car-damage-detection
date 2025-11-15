@@ -23,8 +23,7 @@ export default function RootLayout() {
             presentation: 'card',
             title: 'Inspection Details',
             headerShown: true,
-            // iOS-specific: Hide the back button title to avoid showing "(tabs)"
-            headerBackTitle: Platform.OS === 'ios' ? '' : undefined,
+            headerBackTitle: ' ',
             headerBackTitleVisible: false,
           }} 
         />
