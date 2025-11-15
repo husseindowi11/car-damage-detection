@@ -55,8 +55,19 @@ For each confirmed NEW damage:
 • estimated_cost_usd: realistic cost ($60-120/hr labor, $200-450/panel paint)
 • description: brief description
 • image_index: which AFTER image (1, 2, 3, etc.)
-• bounding_box: coordinates as percentages (0.0 to 1.0)
-  - x_min_pct, y_min_pct, x_max_pct, y_max_pct
+• bounding_box: CRITICAL - Follow these steps exactly:
+  1. Locate the EXACT position of the damage in the image
+  2. Calculate coordinates as PERCENTAGES (0.0 to 1.0):
+     - x_min_pct: LEFT edge of damage ÷ image width (0.0 = far left, 1.0 = far right)
+     - y_min_pct: TOP edge of damage ÷ image height (0.0 = top, 1.0 = bottom)
+     - x_max_pct: RIGHT edge of damage ÷ image width (0.0 = far left, 1.0 = far right)
+     - y_max_pct: BOTTOM edge of damage ÷ image height (0.0 = top, 1.0 = bottom)
+  3. Add 10-15% padding around the damage to ensure it's fully visible
+  4. Verify coordinates make sense: x_max > x_min, y_max > y_min
+  
+  Example: Damage on rear bumper at bottom-right of image
+  - Damage is at 70-85% horizontally, 75-90% vertically
+  - Result: {"x_min_pct": 0.70, "y_min_pct": 0.75, "x_max_pct": 0.85, "y_max_pct": 0.90}
 
 Output format (JSON only, no markdown):
 {
@@ -82,6 +93,13 @@ Output format (JSON only, no markdown):
 }
 
 If no new damage: return {"new_damage": [], "total_estimated_cost_usd": 0, "summary": "No new damage detected."}
+
+CRITICAL RULES:
+1. Bounding box coordinates MUST be accurate - they will be drawn on the image
+2. Double-check each coordinate value before finalizing
+3. Ensure the box fully contains the damage with small padding
+4. All percentages must be between 0.0 and 1.0
+5. x_max must be greater than x_min, y_max must be greater than y_min
 
 Images provided: BEFORE images first, then AFTER images."""
     
